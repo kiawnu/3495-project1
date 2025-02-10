@@ -1,0 +1,6 @@
+services:
+  node-app:
+    image: enter_data_app
+    ports:
+      - "3000:3000"
+    restart: always
