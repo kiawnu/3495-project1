@@ -24,13 +24,17 @@ services:
       - '3306:3306'
     env_file:
       - .env 
-    networks:
-      - app-network
-
-networks:
-  app-network:
-    driver: bridge
+  mongodb:
+    image: mongo
+    restart: always
+    volumes:
+      - mongodb_data:/data/db
+    ports:
+      - '27017:27017'
+    env_file:
+      - .env 
 
 volumes:
   db_data:
+  mongodb_data:
 
