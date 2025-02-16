@@ -13,13 +13,24 @@ services:
       NODE_ENV: development
   mysql: 
     image: mysql:latest
+    restart: always
     volumes:
       - db_data:/var/lib/mysql
     ports:
       - '4444:3306'
     env_file:
       - .env 
+  mongodb:
+    image: mongo
+    restart: always
+    volumes:
+      - mongodb_data:/data/db
+    ports:
+      - '27017:27017'
+    env_file:
+      - .env 
 
 volumes:
   db_data:
+  mongodb_data:
 
