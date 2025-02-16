@@ -7,6 +7,19 @@ services:
     ports:
       - "3000:3000"
     restart: always
+    env_file:
+      - .env
     environment:
       NODE_ENV: development
+  mysql: 
+    image: mysql:latest
+    volumes:
+      - db_data:/var/lib/mysql
+    ports:
+      - '4444:3306'
+    env_file:
+      - .env 
+
+volumes:
+  db_data:
 

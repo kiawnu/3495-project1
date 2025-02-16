@@ -1,4 +1,6 @@
 const express = require("express");
+const mysql = require('mysql2');
+require('dotenv').config();
 const bodyParser = require("body-parser");
 
 const app = express();
@@ -6,6 +8,24 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware to parse form data
 app.use(bodyParser.urlencoded({ extended: true }));
+
+// MySQL Connection
+const db = mysql.createConnection({
+  host: process.env.MYSQL_HOST,
+  user: process.env.MYSQL_USER,
+  password: process.env.MYSQL_PASSWORD,
+  database: process.env.MYSQL_DATABASE,
+});
+
+// Connect to MySQL
+db.connect((err) => {
+  if (err) {
+    console.error('Error connecting to MySQL: ' + err.stack);
+    return;
+  }
+  console.log('Connected to MySQL as ID ' + db.threadId);
+});
+
 
 // Serve a simple form
 app.get("/", (req, res) => {
