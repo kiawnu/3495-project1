@@ -9,22 +9,31 @@ const PORT = process.env.PORT || 3000;
 // Middleware to parse form data
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// MySQL Connection
+
 const db = mysql.createConnection({
   host: process.env.MYSQL_HOST,
   user: process.env.MYSQL_USER,
   password: process.env.MYSQL_PASSWORD,
   database: process.env.MYSQL_DATABASE,
+  port: 3306,
 });
 
+
 // Connect to MySQL
-db.connect((err) => {
-  if (err) {
-    console.error('Error connecting to MySQL: ' + err.stack);
-    return;
-  }
-  console.log('Connected to MySQL as ID ' + db.threadId);
-});
+function connectWithRetry() {
+  db.connect((err) => {
+    if (err) {
+      console.error('Error connecting to MySQL:', err.message);
+      console.log('Retrying in 5 seconds...');
+      setTimeout(connectWithRetry, 5000);
+    } else {
+      console.log('Connected to MySQL as ID', db.threadId);
+    }
+  });
+}
+
+connectWithRetry();
+
 
 
 // Serve a simple form
@@ -62,6 +71,6 @@ app.post("/submit", (req, res) => {
   `);
 });
 
-app.listen(PORT, "0.0.0.0", () => {
+app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
