@@ -1,38 +1,37 @@
 const express = require("express");
-const mysql = require('mysql2');
 require('dotenv').config();
 const bodyParser = require("body-parser");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = 3100;
 
 // Middleware to parse form data
 app.use(bodyParser.urlencoded({ extended: true }));
 
 
-const db = mysql.createConnection({
-  host: process.env.MYSQL_HOST,
-  user: process.env.MYSQL_USER,
-  password: process.env.MYSQL_PASSWORD,
-  database: process.env.MYSQL_DATABASE,
-  port: 3306,
-});
+// const db = mysql.createConnection({
+//   host: process.env.MYSQL_HOST,
+//   user: process.env.MYSQL_USER,
+//   password: process.env.MYSQL_PASSWORD,
+//   database: process.env.MYSQL_DATABASE,
+//   port: 3306,
+// });
 
 
-// Connect to MySQL
-function connectWithRetry() {
-  db.connect((err) => {
-    if (err) {
-      console.error('Error connecting to MySQL:', err.message);
-      console.log('Retrying in 5 seconds...');
-      setTimeout(connectWithRetry, 5000);
-    } else {
-      console.log('Connected to MySQL as ID', db.threadId);
-    }
-  });
-}
+// // Connect to MySQL
+// function connectWithRetry() {
+//   db.connect((err) => {
+//     if (err) {
+//       console.error('Error connecting to MySQL:', err.message);
+//       console.log('Retrying in 5 seconds...');
+//       setTimeout(connectWithRetry, 5000);
+//     } else {
+//       console.log('Connected to MySQL as ID', db.threadId);
+//     }
+//   });
+// }
 
-connectWithRetry();
+// connectWithRetry();
 
 
 

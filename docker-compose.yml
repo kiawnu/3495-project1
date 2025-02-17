@@ -27,6 +27,18 @@ services:
       - .env 
     networks:
       - app-network
+  mongodb:
+    image: mongo:latest
+    restart: always
+    ports:
+      - "27017:27017"
+    env_file:
+      - .env
+    volumes:
+      - mongo-data:/data/db
+      - mongo-config:/data/configdb
+
+
 
 networks:
   app-network:
@@ -34,4 +46,6 @@ networks:
 
 volumes:
   db_data:
+  mongo-data:
+  mongo-config:
 
