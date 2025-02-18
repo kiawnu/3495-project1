@@ -6,6 +6,7 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const session = require('express-session');
 const flash = require('connect-flash');
+const { createProxyMiddleware } = require("http-proxy-middleware");
 app.use(express.urlencoded({ extended: true })); // Allows parsing of form data
 app.use(express.json()); // Allows parsing of JSON requests
 
@@ -49,7 +50,7 @@ done(null, user);
 
 app.post('/login',
 passport.authenticate('local', {
-successRedirect: 'http://localhost:3000',
+successRedirect: 'http://localhost:3000/',
 failureRedirect: '/login',
 // failureFlash: true
 })
@@ -76,6 +77,10 @@ app.get('/protected', ensureAuthenticated, (req, res) => {
 res.send('This is a protected route');
 });
 
+app.use('/web', ensureAuthenticated, createProxyMiddleware({
+    target: 'http://localhost:3000/', // Internal service
+    changeOrigin: true
+}));
 
 app.listen(PORT, () => {
 console.log(`Server is running on port ${PORT}`);
