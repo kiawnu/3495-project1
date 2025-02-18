@@ -1,0 +1,19 @@
+{
+  "name": "authentication",
+  "version": "1.0.0",
+  "description": "Authenticate users from the show results web app and enter data web app",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "connect-flash": "^0.1.1",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "passport": "^0.7.0",
+    "passport-local": "^1.0.0"
+  }
+}

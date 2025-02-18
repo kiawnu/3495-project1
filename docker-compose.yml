@@ -9,6 +9,21 @@ services:
     restart: always
     depends_on:
       - mysql
+      - auth-app
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: development
+    networks:
+      - app-network
+  auth-app:
+    build: 
+      context: ./authentication
+      dockerfile: Dockerfile
+    image: auth_app
+    ports:
+      - "3200:3200"
+    restart: always
     env_file:
       - .env
     environment:
