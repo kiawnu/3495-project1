@@ -12,5 +12,5 @@ mongo:
   host: mongodb
   port: 27017
   database: transport_stats
-  collection: 
+  collection: train_stats
   uri: mongodb://dev1:dev123@mongodb:27017/transport_stats?authSource=admin

@@ -13,11 +13,7 @@ import time
 with open("app_conf.yml", "r") as f:
     CONFIG = yaml.safe_load(f.read())
 
-MONGO_URI = CONFIG["mongo"]["uri"]
-DB_NAME = CONFIG["mongo"]["database"]
 
-
-# time.sleep(5)
 def establish_sql_connection():
     return mysql.connector.connect(
         host="mysql",
@@ -29,20 +25,18 @@ def establish_sql_connection():
 
 
 def connect_with_retry():
-    global client, db
+    global mongo_client, mongo_db
     while True:
         try:
-            client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
-            client.admin.command("ping")  # Ping the MongoDB server
-            db = client[DB_NAME]
+            mongo_client = MongoClient(CONFIG["mongo"]["uri"], serverSelectionTimeoutMS=5000)
+            mongo_client.admin.command("ping")  # Ping the MongoDB server
+            mongo_db = mongo_client[CONFIG["mongo"]["database"]]
             print("Connected to MongoDB")
             break
         except Exception as e:
             print(f"Error connecting to MongoDB: {e}. Retrying in 5 seconds...")
             time.sleep(5)
 
-
-connect_with_retry()
 
 
 def get_stats(db_session):
@@ -105,22 +99,13 @@ def get_stats(db_session):
 
 
 def send_to_mongo(stats):
+    connect_with_retry()
     print(stats)
 
-    # # Connect to MongoDB
-    # mongo_client = pymongo.MongoClient(f"mongodb://{CONFIG['mongo']['host']}:{CONFIG['mongo']['port']}/")
-    # mongo_db = mongo_client[CONFIG['mongo']['database']]
-    # mongo_collection = mongo_db[CONFIG['mongo']['collection']]
+    collection = mongo_db[CONFIG["mongo"]["collection"]]
+    collection.insert_one(stats)
+    mongo_client.close()
 
-    # # Prepare data to insert into MongoDB
-    # # Here, we are inserting the analysis results
-    # mongo_collection.insert_one(data_analysis)
-
-    # # If you want to insert all the MySQL rows into MongoDB:
-    # mongo_collection.insert_many([{"column1": row[0], "column2": row[1]} for row in results])
-
-    # # Close MongoDB connection
-    # mongo_client.close()
 
 
 def main():
