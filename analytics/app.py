@@ -1,11 +1,18 @@
 import mysql.connector
 from apscheduler.schedulers.background import BackgroundScheduler
 from pymongo import MongoClient
+from flask import Flask
 import yaml
 import time
 
 with open("app_conf.yml", "r") as f:
     CONFIG = yaml.safe_load(f.read())
+
+app = Flask(__name__)
+
+@app.route('/')
+def placeholder():
+    return '<p>Placeholder</p>'
 
 
 def establish_sql_connection():
@@ -120,7 +127,6 @@ def init_scheduler():
     sched.start()
 
 
-app = connexion
-
 if __name__ == "__main__":
     init_scheduler()
+    app.run(debug=True)

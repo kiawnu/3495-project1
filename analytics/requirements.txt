@@ -2,4 +2,4 @@ mysql-connector-python
 pymongo
 pyyaml
 APScheduler
-connexion
+flask
