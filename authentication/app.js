@@ -48,31 +48,39 @@ const user = users.find(u => u.id === id);
 done(null, user);
 });
 
-app.post('/login',
-passport.authenticate('local', {
-successRedirect: 'http://localhost:3000/',
-failureRedirect: '/login',
-// failureFlash: true
-})
-);
 
-app.get('/profile', (req, res) => {
-if (req.isAuthenticated()) {
-res.send('Welcome to your profile');
-} else {
-res.redirect('/login');
-}
+app.post('/login', (req, res, next) => {
+    const redirect = req.body.redirect; // Get the redirect value from the form
+
+    passport.authenticate('local', (err, user, info) => {
+        if (err) { return next(err); } // Handle errors
+        if (!user) {
+            // Redirect to the login page again with the redirect value
+            return res.redirect(`/login/${redirect}`); 
+        }
+        req.logIn(user, (err) => {
+            if (err) { return next(err); }
+            // Redirect based on the redirect value
+            return res.redirect(`http://localhost:${redirect}`);
+        });
+    })(req, res, next);
 });
+
+
 app.get('/login', (req, res) => {
 res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
+
 
 function ensureAuthenticated(req, res, next) {
 if (req.isAuthenticated()) {
 return next();
 }
+
 res.redirect('/login');
 }
+
+
 app.get('/protected', ensureAuthenticated, (req, res) => {
 res.send('This is a protected route');
 });
