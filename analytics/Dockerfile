@@ -10,6 +10,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application files
 COPY . .
 
+COPY scripts/wait-for-it.sh /usr/local/bin/wait-for-it.sh
+RUN chmod +x /usr/local/bin/wait-for-it.sh
 
 # Start the server
-CMD ["python", "app.py"]
+CMD ["wait-for-it.sh", "mongodb:27017", "--", "wait-for-it.sh", "mysql:3306", "--", "python", "app.py"]

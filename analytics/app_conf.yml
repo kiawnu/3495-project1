@@ -4,7 +4,7 @@ mysql:
   user: dev1
   user_password: Dev1-mysql
   host: mysql
-  port: 4444
+  port: 3306
   table: 
     name: trains
     columns: [train_type, train_line, arrical_time, passengers_onb]
@@ -13,3 +13,4 @@ mongo:
   port: 27017
   database: transport_stats
   collection: 
+  uri: mongodb://dev1:dev123@mongodb:27017/transport_stats?authSource=admin

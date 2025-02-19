@@ -75,7 +75,6 @@ services:
     build:
       context: ./analytics
       dockerfile: Dockerfile
-    restart: always
     env_file:
       - .env
     depends_on:
