@@ -1,18 +1,11 @@
-# TODO:
-# 1. connect to mongodb and dump the stats
-#
-# 2. Set it up to run on some frequency
-#   -> reference tims lab?
-
 import mysql.connector
-
+from apscheduler.schedulers.background import BackgroundScheduler
 from pymongo import MongoClient
 import yaml
 import time
 
 with open("app_conf.yml", "r") as f:
     CONFIG = yaml.safe_load(f.read())
-
 
 def establish_sql_connection():
     return mysql.connector.connect(
@@ -22,7 +15,6 @@ def establish_sql_connection():
         database=CONFIG["mysql"]["database"],
         port=CONFIG["mysql"]["port"],
     )
-
 
 def connect_with_retry():
     global mongo_client, mongo_db
@@ -38,7 +30,6 @@ def connect_with_retry():
         except Exception as e:
             print(f"Error connecting to MongoDB: {e}. Retrying in 5 seconds...")
             time.sleep(5)
-
 
 def get_stats(db_session):
     cursor = db_session.cursor()
@@ -104,15 +95,12 @@ def get_stats(db_session):
 
     return stats
 
-
 def send_to_mongo(stats):
     connect_with_retry()
-    print(stats)
 
     collection = mongo_db[CONFIG["mongo"]["collection"]]
     collection.insert_one(stats)
     mongo_client.close()
-
 
 def main():
     # some kind of loop that keeps running
@@ -120,6 +108,12 @@ def main():
     stats = get_stats(establish_sql_connection())
     send_to_mongo(stats)
 
+def init_scheduler():
+    sched = BackgroundScheduler(daemon=True)
+    sched.add_job(main,
+        'interval',
+        seconds=CONFIG['scheduler']['interval'])
+    sched.start()
 
 if __name__ == "__main__":
-    main()
+    init_scheduler()

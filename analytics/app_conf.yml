@@ -14,3 +14,5 @@ mongo:
   database: transport_stats
   collection: train_stats
   uri: mongodb://dev1:dev123@mongodb:27017/transport_stats?authSource=admin
+scheduler:
+  interval: 10
