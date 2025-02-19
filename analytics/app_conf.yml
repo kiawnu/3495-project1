@@ -1,0 +1,13 @@
+mysql:
+  root_password: 3495-project
+  database: analytics
+  user: dev1
+  user_password: Dev1-mysql
+  host: mysql
+  port: 3306
+  table: table1
+mongo:
+  host: mongodb
+  port: 27017
+  database:
+  collection:
