@@ -1,93 +1,52 @@
 const express = require("express");
-require('dotenv').config();
-const bodyParser = require("body-parser");
+const { MongoClient } = require("mongodb");
+require("dotenv").config();
 
 const app = express();
-const PORT = 3100;
+const PORT = 3300;
+const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017";
+const DB_NAME = "transport_stats";
 
-// Middleware to parse form data
-app.use(bodyParser.urlencoded({ extended: true }));
+let db;
 
+// Connect to MongoDB with retry logic
+async function connectWithRetry() {
+  try {
+    const client = new MongoClient(MONGO_URI,{ useNewUrlParser: true });
+    await client.connect();
+    db = client.db(DB_NAME);
+    console.log("Connected to MongoDB");
+  } catch (err) {
+    console.error("Error connecting to MongoDB:", err.message);
+    console.log("Retrying in 5 seconds...");
+    setTimeout(connectWithRetry, 5000);
+  }
+}
 
-// const db = mysql.createConnection({
-//   host: process.env.MYSQL_HOST,
-//   user: process.env.MYSQL_USER,
-//   password: process.env.MYSQL_PASSWORD,
-//   database: process.env.MYSQL_DATABASE,
-//   port: 3306,
-// });
+connectWithRetry();
 
-
-// // Connect to MySQL
-// function connectWithRetry() {
-//   db.connect((err) => {
-//     if (err) {
-//       console.error('Error connecting to MySQL:', err.message);
-//       console.log('Retrying in 5 seconds...');
-//       setTimeout(connectWithRetry, 5000);
-//     } else {
-//       console.log('Connected to MySQL as ID', db.threadId);
-//     }
-//   });
-// }
-
-// connectWithRetry();
-
-
-
-// Serve a simple form
-app.get("/", (req, res) => {
-  res.send(`
-    <h2>Train Data</h2>
-    <form action="/submit" method="POST">
-      <label for="trainType">Train Type:</label>
-      <input type="text" id="trainType" name="trainType" required><br><br>
-
-      <label for="trainLine">Train Line:</label>
-      <input type="text" id="trainLine" name="trainLine" required><br><br>
-
-      <label for="time">Time:</label>
-      <input type="time" id="time" name="time" required><br><br>
-
-      <label for="passengers">Number of Passengers:</label>
-      <input type="number" id="passengers" name="passengers" required><br><br>
-
-      <button type="submit">Submit</button>
-    </form>
-  `);
-});
-
-// Handle form submission
-app.post("/submit", (req, res) => {
-  const { trainType, trainLine, time, passengers } = req.body;
-
-  const today = new Date();
-  const [hours, minutes] = time.split(":");
-  today.setHours(hours, minutes, 0, 0);
-
-  const arrivalDateTime = today.toISOString().slice(0, 19).replace('T', ' ');
-
-  const sql = `
-    INSERT INTO trains (train_type, train_line, arrival_time, passengers_onb)
-    VALUES (?, ?, ?, ?)
-  `;
-
-  db.query(sql, [trainType, trainLine, arrivalDateTime, passengers], (err, results) => {
-    if (err) {
-      console.error("Error inserting data:", err);
-      return res.send("An error occurred while inserting data.");
+// Serve the stats in a simple table
+app.get("/", async (req, res) => {
+  try {
+    const stats = await db.collection("train_stats").findOne();
+    if (!stats) {
+      return res.send("No statistics available");
     }
 
-  res.send(`
-    <h2>Train Data Updated</h2>
-    <p><strong>Train Type:</strong> ${trainType}</p>
-    <p><strong>Train Line:</strong> ${trainLine}</p>
-    <p><strong>Time:</strong> ${time}</p>
-    <p><strong>Number of Passengers:</strong> ${passengers}</p>
-    <a href="/">Go Back</a>nd module '/app/server.js'" means that Docker can't
-  `);
-});
-
+    res.send(`
+      <h2>Train Statistics</h2>
+      <table border="1" cellpadding="5">
+        <tr><th>Passenger Count Avg</th><td>${stats.passenger_count_avg}</td></tr>
+        <tr><th>Peak Traffic Time</th><td>${stats.peak_traffic_time}</td></tr>
+        <tr><th>Most Used Line</th><td>${stats.most_used_line}</td></tr>
+        <tr><th>Number of Cargo Trains</th><td>${stats.num_cargo_trains}</td></tr>
+        <tr><th>Number of Passenger Trains</th><td>${stats.num_passenger_trains}</td></tr>
+      </table>
+    `);
+  } catch (err) {
+    console.error("Error fetching data:", err);
+    res.send("An error occurred while fetching data.");
+  }
 });
 
 app.listen(PORT, () => {

@@ -16,6 +16,22 @@ services:
       NODE_ENV: development
     networks:
       - app-network
+  show-app:
+    build:
+      context: ./show_results
+      dockerfile: Dockerfile
+    image: show_results_app
+    ports:
+      - "3300:3300"
+    restart: always
+    depends_on:
+      - mongodb
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: development
+    networks:
+      - app-network
   auth-app:
     build: 
       context: ./authentication
@@ -52,6 +68,9 @@ services:
     volumes:
       - mongo-data:/data/db
       - mongo-config:/data/configdb
+      - ./init.js:/docker-entrypoint-initdb.d/init.js:ro
+    networks:
+      - app-network
 
 
 
