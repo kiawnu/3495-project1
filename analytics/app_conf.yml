@@ -4,10 +4,12 @@ mysql:
   user: dev1
   user_password: Dev1-mysql
   host: mysql
-  port: 3306
-  table: table1
+  port: 4444
+  table: 
+    name: trains
+    columns: [train_type, train_line, arrical_time, passengers_onb]
 mongo:
   host: mongodb
   port: 27017
-  database:
-  collection:
+  database: transport_stats
+  collection: 

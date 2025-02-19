@@ -25,6 +25,7 @@ services:
     restart: always
     depends_on:
       - mongodb
+      - auth-app
     env_file:
       - .env
     environment:
@@ -70,7 +71,18 @@ services:
       - ./init.js:/docker-entrypoint-initdb.d/init.js:ro
     networks:
       - app-network
-
+  analyzer:
+    build:
+      context: ./analytics
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      - mongodb
+      - mysql
+    networks:
+      - app-network
 
 
 networks:
