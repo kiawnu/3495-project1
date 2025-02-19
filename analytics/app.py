@@ -28,7 +28,9 @@ def connect_with_retry():
     global mongo_client, mongo_db
     while True:
         try:
-            mongo_client = MongoClient(CONFIG["mongo"]["uri"], serverSelectionTimeoutMS=5000)
+            mongo_client = MongoClient(
+                CONFIG["mongo"]["uri"], serverSelectionTimeoutMS=5000
+            )
             mongo_client.admin.command("ping")  # Ping the MongoDB server
             mongo_db = mongo_client[CONFIG["mongo"]["database"]]
             print("Connected to MongoDB")
@@ -38,10 +40,15 @@ def connect_with_retry():
             time.sleep(5)
 
 
-
 def get_stats(db_session):
     cursor = db_session.cursor()
-    stats = {}
+    stats = {
+        "passenger_count_avg": 0,
+        "peak_traffic_time": "",
+        "most_used_line": "",
+        "num_cargo_trains": 0,
+        "num_passenger_trains": 0,
+    }
 
     # Average passenger count
     cursor.execute(f"""
@@ -50,7 +57,7 @@ def get_stats(db_session):
     results = cursor.fetchall()
     if results:
         print(f"Average passengers on board: {results[0][0]}")
-        stats["avg_passengers"] = str(results[0][0])
+        stats["passenger_count_avg"] = int(results[0][0])
 
     # Peak Traffic time - this is busiest hour
     cursor.execute(f"""
@@ -62,7 +69,7 @@ def get_stats(db_session):
     results = cursor.fetchall()
     if results:
         print(f"Peak traffic time: {results[0][0]} o'clock")
-        stats["peak_traffic_time"] = results[0][0]
+        stats["peak_traffic_time"] = str(results[0][0])
 
     # Most popular line
     cursor.execute(f"""
@@ -73,8 +80,8 @@ def get_stats(db_session):
                 """)
     results = cursor.fetchall()
     if results:
-        print(f"Most popular line: {results[0][0]}")
-        stats["most_popular_line"] = results[0][0]
+        print(f"Most used line: {results[0][0]}")
+        stats["most_used_line"] = results[0][0]
 
     # num cargo trains
     # num passenger trains
@@ -87,10 +94,10 @@ def get_stats(db_session):
         for row in results:
             if row[0] == "passenger":
                 print(f"Num passenger trains: {row[1]}")
-                stats["num_passenger_trains"] = row[1]
+                stats["num_passenger_trains"] = int(row[1])
             elif row[0] == "cargo":
                 print(f"Num cargo trains: {row[1]}")
-                stats["num_cargo_trains"] = row[1]
+                stats["num_cargo_trains"] = int(row[1])
 
     cursor.close()
     db_session.close()
@@ -105,7 +112,6 @@ def send_to_mongo(stats):
     collection = mongo_db[CONFIG["mongo"]["collection"]]
     collection.insert_one(stats)
     mongo_client.close()
-
 
 
 def main():

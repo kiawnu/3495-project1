@@ -28,19 +28,19 @@ connectWithRetry();
 // Serve the stats in a simple table
 app.get("/", async (req, res) => {
   try {
-    const stats = await db.collection("train_stats").findOne();
+    const stats = await db.collection("train_stats").find().sort({_id: -1}).limit(1).toArray();
     if (!stats) {
       return res.send("No statistics available");
     }
-
+    const recentStats = stats[0]
     res.send(`
       <h2>Train Statistics</h2>
       <table border="1" cellpadding="5">
-        <tr><th>Passenger Count Avg</th><td>${stats.passenger_count_avg}</td></tr>
-        <tr><th>Peak Traffic Time</th><td>${stats.peak_traffic_time}</td></tr>
-        <tr><th>Most Used Line</th><td>${stats.most_used_line}</td></tr>
-        <tr><th>Number of Cargo Trains</th><td>${stats.num_cargo_trains}</td></tr>
-        <tr><th>Number of Passenger Trains</th><td>${stats.num_passenger_trains}</td></tr>
+        <tr><th>Passenger Count Avg</th><td>${recentStats.passenger_count_avg}</td></tr>
+        <tr><th>Peak Traffic Time</th><td>${recentStats.peak_traffic_time}</td></tr>
+        <tr><th>Most Used Line</th><td>${recentStats.most_used_line}</td></tr>
+        <tr><th>Number of Cargo Trains</th><td>${recentStats.num_cargo_trains}</td></tr>
+        <tr><th>Number of Passenger Trains</th><td>${recentStats.num_passenger_trains}</td></tr>
       </table>
     `);
   } catch (err) {
