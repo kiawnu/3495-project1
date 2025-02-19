@@ -4,9 +4,16 @@ from pymongo import MongoClient
 from flask import Flask
 import yaml
 import time
+import logging
 
 with open("app_conf.yml", "r") as f:
     CONFIG = yaml.safe_load(f.read())
+
+with open('log_conf.yml', 'r') as f:
+    LOG_CONFIG = yaml.safe_load(f.read())
+    logging.config.dictConfig(LOG_CONFIG)
+
+logger = logging.getLogger('basicLogger')
 
 app = Flask(__name__)
 
@@ -42,6 +49,7 @@ def connect_with_retry():
 
 
 def get_stats(db_session):
+    logger.info("Connected to mysql")
     cursor = db_session.cursor()
     stats = {
         "passenger_count_avg": 0,
@@ -56,6 +64,7 @@ def get_stats(db_session):
                     select round(avg(passengers_onb), 0) from {CONFIG["mysql"]["database"]}.{CONFIG["mysql"]["table"]["name"]}
                 """)
     results = cursor.fetchall()
+    logger.debug(f"avg pass results: {results}")
     if results:
         print(f"Average passengers on board: {results[0][0]}")
         stats["passenger_count_avg"] = int(results[0][0])
@@ -68,6 +77,7 @@ def get_stats(db_session):
                     limit 1;
                 """)
     results = cursor.fetchall()
+    logger.debug(f"peak traffic results: {results}")
     if results:
         print(f"Peak traffic time: {results[0][0]} o'clock")
         stats["peak_traffic_time"] = str(results[0][0])
@@ -80,6 +90,7 @@ def get_stats(db_session):
                     limit 1;
                 """)
     results = cursor.fetchall()
+    logger.debug(f"most pop line results: {results}")
     if results:
         print(f"Most used line: {results[0][0]}")
         stats["most_used_line"] = results[0][0]
@@ -91,6 +102,7 @@ def get_stats(db_session):
                     group by train_type;
                 """)
     results = cursor.fetchall()
+    logger.debug(f"train type results: {results}")
     if results:
         for row in results:
             if row[0] == "passenger":
