@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM flask:latest
 
 # Set working directory
 WORKDIR /app

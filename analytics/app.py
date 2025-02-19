@@ -7,6 +7,7 @@ import time
 with open("app_conf.yml", "r") as f:
     CONFIG = yaml.safe_load(f.read())
 
+
 def establish_sql_connection():
     return mysql.connector.connect(
         host="mysql",
@@ -15,6 +16,7 @@ def establish_sql_connection():
         database=CONFIG["mysql"]["database"],
         port=CONFIG["mysql"]["port"],
     )
+
 
 def connect_with_retry():
     global mongo_client, mongo_db
@@ -30,6 +32,7 @@ def connect_with_retry():
         except Exception as e:
             print(f"Error connecting to MongoDB: {e}. Retrying in 5 seconds...")
             time.sleep(5)
+
 
 def get_stats(db_session):
     cursor = db_session.cursor()
@@ -95,6 +98,7 @@ def get_stats(db_session):
 
     return stats
 
+
 def send_to_mongo(stats):
     connect_with_retry()
 
@@ -102,18 +106,21 @@ def send_to_mongo(stats):
     collection.insert_one(stats)
     mongo_client.close()
 
+
 def main():
     # some kind of loop that keeps running
     # lowkey an infitie while loop would work i think
     stats = get_stats(establish_sql_connection())
     send_to_mongo(stats)
 
+
 def init_scheduler():
     sched = BackgroundScheduler(daemon=True)
-    sched.add_job(main,
-        'interval',
-        seconds=CONFIG['scheduler']['interval'])
+    sched.add_job(main, "interval", seconds=CONFIG["scheduler"]["interval"])
     sched.start()
+
+
+app = connexion
 
 if __name__ == "__main__":
     init_scheduler()
