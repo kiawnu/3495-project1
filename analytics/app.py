@@ -7,20 +7,22 @@ import time
 import logging
 from dotenv import load_dotenv, dotenv_values
 import os
+import logging.config
 
 load_dotenv()
 
-with open('log_conf.yml', 'r') as f:
+with open("log_conf.yml", "r") as f:
     LOG_CONFIG = yaml.safe_load(f.read())
     logging.config.dictConfig(LOG_CONFIG)
 
-logger = logging.getLogger('basicLogger')
+logger = logging.getLogger("basicLogger")
 
 app = Flask(__name__)
 
-@app.route('/')
+
+@app.route("/")
 def placeholder():
-    return '<p>Placeholder</p>'
+    return "<p>Placeholder</p>"
 
 
 def establish_sql_connection():
