@@ -5,9 +5,10 @@ from flask import Flask
 import yaml
 import time
 import logging
+from dotenv import load_dotenv, dotenv_values
+import os
 
-with open("app_conf.yml", "r") as f:
-    CONFIG = yaml.safe_load(f.read())
+load_dotenv()
 
 with open('log_conf.yml', 'r') as f:
     LOG_CONFIG = yaml.safe_load(f.read())
@@ -25,10 +26,10 @@ def placeholder():
 def establish_sql_connection():
     return mysql.connector.connect(
         host="mysql",
-        user=CONFIG["mysql"]["user"],
-        password=CONFIG["mysql"]["user_password"],
-        database=CONFIG["mysql"]["database"],
-        port=CONFIG["mysql"]["port"],
+        user=os.getenv("MYSQL_USER"),
+        password=os.getenv("MYSQL_PASSWORD"),
+        database=os.getenv("MYSQL_DATABASE"),
+        port=os.getenv("MYSQL_PORT"),
     )
 
 
@@ -37,10 +38,10 @@ def connect_with_retry():
     while True:
         try:
             mongo_client = MongoClient(
-                CONFIG["mongo"]["uri"], serverSelectionTimeoutMS=5000
+                os.getenv("MONGO_URI"), serverSelectionTimeoutMS=5000
             )
             mongo_client.admin.command("ping")  # Ping the MongoDB server
-            mongo_db = mongo_client[CONFIG["mongo"]["database"]]
+            mongo_db = mongo_client["transport_stats"]
             print("Connected to MongoDB")
             break
         except Exception as e:
@@ -61,7 +62,7 @@ def get_stats(db_session):
 
     # Average passenger count
     cursor.execute(f"""
-                    select round(avg(passengers_onb), 0) from {CONFIG["mysql"]["database"]}.{CONFIG["mysql"]["table"]["name"]}
+                    select round(avg(passengers_onb), 0) from {os.getenv("MYSQL_DATABASE")}.trains
                 """)
     results = cursor.fetchall()
     logger.debug(f"avg pass results: {results}")
@@ -71,7 +72,7 @@ def get_stats(db_session):
 
     # Peak Traffic time - this is busiest hour
     cursor.execute(f"""
-                    select hour(arrival_time) as hour, count(*) as total from {CONFIG["mysql"]["database"]}.{CONFIG["mysql"]["table"]["name"]}
+                    select hour(arrival_time) as hour, count(*) as total from {os.getenv("MYSQL_DATABASE")}.trains
                     group by hour(arrival_time)
                     order by total desc
                     limit 1;
@@ -84,7 +85,7 @@ def get_stats(db_session):
 
     # Most popular line
     cursor.execute(f"""
-                    select train_line, count(*) as total from {CONFIG["mysql"]["database"]}.{CONFIG["mysql"]["table"]["name"]}
+                    select train_line, count(*) as total from {os.getenv("MYSQL_DATABASE")}.trains
                     group by train_line
                     order by total desc
                     limit 1;
@@ -98,7 +99,7 @@ def get_stats(db_session):
     # num cargo trains
     # num passenger trains
     cursor.execute(f"""
-                    select train_type, count(*) from {CONFIG["mysql"]["database"]}.{CONFIG["mysql"]["table"]["name"]}
+                    select train_type, count(*) from {os.getenv("MYSQL_DATABASE")}.trains
                     group by train_type;
                 """)
     results = cursor.fetchall()
@@ -121,7 +122,7 @@ def get_stats(db_session):
 def send_to_mongo(stats):
     connect_with_retry()
 
-    collection = mongo_db[CONFIG["mongo"]["collection"]]
+    collection = mongo_db["train_stats"]
     collection.insert_one(stats)
     mongo_client.close()
 
@@ -135,7 +136,7 @@ def main():
 
 def init_scheduler():
     sched = BackgroundScheduler(daemon=True)
-    sched.add_job(main, "interval", seconds=CONFIG["scheduler"]["interval"])
+    sched.add_job(main, "interval", seconds=10)
     sched.start()
 
 
